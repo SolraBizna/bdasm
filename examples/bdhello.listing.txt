@@ -1,0 +1,92 @@
+        ; These are the defaults, but we specify them explicitly for clarity
+        .BASE 0x8000
+        .SIZE 0x8000
+
+        ; The location of the TTY port
+        .DEFINE tty, 0x0000
+
+        ; The entry point is 0x8000
+        .ORG 0x8000
+Entry:  ; The Scratch register will hold our pointer.
+        WIDEMOVE X, _hello
+;;0x8000: 0380 = MOVE A, >_hello
+;;0x8001: 0516 = MOVE B, <_hello
+;;0x8002: 0E30 = MOVE X, AB
+-       ; (Temporarily holding the pointer in B)
+        MOVE B, X
+;;0x8003: 0407 = MOVE B, X
+        ; Load the next byte into the Scratch register.
+        LOAD? X, B
+;;0x8004: 0802 = MOVE MA, B
+;;0x8005: 1E05 = MOVE? X, MD
+        ; If the byte was zero, the string is terminated. Stop the loop.
+        J.Z +
+;;0x8006: C380 = MOVE.Z A, >+
+;;0x8007: C50F = MOVE.Z B, <+
+;;0x8008: C630 = MOVE.Z PC, AB
+        ; Write the byte to the TTY.
+        STORE tty, X
+;;0x8009: 0900 = MOVE MA, tty
+;;0x800A: 0A07 = MOVE MD, X
+        ; Increment the pointer and restore it to the proper place in the temp
+        ; register
+        MOVE X, BINC
+;;0x800B: 0E40 = MOVE X, BINC
+        ; (If we didn't store it in the temp register, it would be clobbered by
+        ; this jump)
+        J -
+;;0x800C: 0380 = MOVE A, >-
+;;0x800D: 0503 = MOVE B, <-
+;;0x800E: 0630 = MOVE PC, AB
++       ; Now echo everything that is typed.
+-       LOAD? X, tty
+;;0x800F: 0900 = MOVE MA, tty
+;;0x8010: 1E05 = MOVE? X, MD
+        ; The sign bit being set signifies that no input was ready. Output only
+        ; if the sign bit was clear.
+        STORE.NMI tty, X
+;;0x8011: 6900 = MOVE.NMI MA, tty
+;;0x8012: 6A07 = MOVE.NMI MD, X
+        ; Loop!
+        J -
+;;0x8013: 0380 = MOVE A, >-
+;;0x8014: 050F = MOVE B, <-
+;;0x8015: 0630 = MOVE PC, AB
+
+_hello: .WORDS "Hello World!\nReady for some echo?\n\n", 0
+;;0x8016: 0048 = 'H'
+;;0x8017: 0065 = 'e'
+;;0x8018: 006C = 'l'
+;;0x8019: 006C = 'l'
+;;0x801A: 006F = 'o'
+;;0x801B: 0020 = ' '
+;;0x801C: 0057 = 'W'
+;;0x801D: 006F = 'o'
+;;0x801E: 0072 = 'r'
+;;0x801F: 006C = 'l'
+;;0x8020: 0064 = 'd'
+;;0x8021: 0021 = '!'
+;;0x8022: 000A = newline
+;;0x8023: 0052 = 'R'
+;;0x8024: 0065 = 'e'
+;;0x8025: 0061 = 'a'
+;;0x8026: 0064 = 'd'
+;;0x8027: 0079 = 'y'
+;;0x8028: 0020 = ' '
+;;0x8029: 0066 = 'f'
+;;0x802A: 006F = 'o'
+;;0x802B: 0072 = 'r'
+;;0x802C: 0020 = ' '
+;;0x802D: 0073 = 's'
+;;0x802E: 006F = 'o'
+;;0x802F: 006D = 'm'
+;;0x8030: 0065 = 'e'
+;;0x8031: 0020 = ' '
+;;0x8032: 0065 = 'e'
+;;0x8033: 0063 = 'c'
+;;0x8034: 0068 = 'h'
+;;0x8035: 006F = 'o'
+;;0x8036: 003F = '?'
+;;0x8037: 000A = newline
+;;0x8038: 000A = newline
+;;0x8039: 0000 = 0

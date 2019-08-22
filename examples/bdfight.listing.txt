@@ -1,0 +1,888 @@
+        ; (these values are the defaults)
+        .BASE 0x8000
+        .SIZE 0x8000
+        .ORG 0x8000
+        ;;; Globals
+        .DEFINE tty, 0x00
+        .DEFINE uhp, 0x01
+        .DEFINE upot, 0x02
+        .DEFINE mhp, 0x03
+        ;;; "Registers"
+        .DEFINE retval, 0x80
+        .DEFINE param1, 0x81
+        .DEFINE param2, 0x82
+        .DEFINE param3, 0x83
+Entry:
+        ; init stack
+        WIDEMOVE S, 0x8000
+;;0x8000: 0380 = MOVE A, 128
+;;0x8001: 0500 = MOVE B, 0
+;;0x8002: 0C30 = MOVE S, AB
+        ; print the welcome string
+        WIDESTORE param1, helloString
+;;0x8003: 0981 = MOVE MA, param1
+;;0x8004: 0380 = MOVE A, >helloString
+;;0x8005: 053E = MOVE B, <helloString
+;;0x8006: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8007: 0406 = MOVE B, S
+;;0x8008: 0C50 = MOVE S, BDEC
+;;0x8009: 0806 = MOVE MA, S
+;;0x800A: 0380 = MOVE A, >+9
+;;0x800B: 0510 = MOVE B, <+9
+;;0x800C: 0A30 = MOVE MD, AB
+;;0x800D: 0382 = MOVE A, >OutputString
+;;0x800E: 0597 = MOVE B, <OutputString
+;;0x800F: 0630 = MOVE PC, AB
+        ; initialize the game
+        STORE uhp, 5
+;;0x8010: 0901 = MOVE MA, uhp
+;;0x8011: 0B05 = MOVE MD, 5
+        STORE upot, 3
+;;0x8012: 0902 = MOVE MA, upot
+;;0x8013: 0B03 = MOVE MD, 3
+        STORE mhp, 10
+;;0x8014: 0903 = MOVE MA, mhp
+;;0x8015: 0B0A = MOVE MD, 10
+GameLoop:
+        JL ShowStats
+;;0x8016: 0406 = MOVE B, S
+;;0x8017: 0C50 = MOVE S, BDEC
+;;0x8018: 0806 = MOVE MA, S
+;;0x8019: 0380 = MOVE A, >+9
+;;0x801A: 051F = MOVE B, <+9
+;;0x801B: 0A30 = MOVE MD, AB
+;;0x801C: 0380 = MOVE A, >ShowStats
+;;0x801D: 055C = MOVE B, <ShowStats
+;;0x801E: 0630 = MOVE PC, AB
+        JL PlayerAction
+;;0x801F: 0406 = MOVE B, S
+;;0x8020: 0C50 = MOVE S, BDEC
+;;0x8021: 0806 = MOVE MA, S
+;;0x8022: 0380 = MOVE A, >+9
+;;0x8023: 0528 = MOVE B, <+9
+;;0x8024: 0A30 = MOVE MD, AB
+;;0x8025: 0380 = MOVE A, >PlayerAction
+;;0x8026: 05EA = MOVE B, <PlayerAction
+;;0x8027: 0630 = MOVE PC, AB
+        JL EnemyAction
+;;0x8028: 0406 = MOVE B, S
+;;0x8029: 0C50 = MOVE S, BDEC
+;;0x802A: 0806 = MOVE MA, S
+;;0x802B: 0380 = MOVE A, >+9
+;;0x802C: 0531 = MOVE B, <+9
+;;0x802D: 0A30 = MOVE MD, AB
+;;0x802E: 0382 = MOVE A, >EnemyAction
+;;0x802F: 0530 = MOVE B, <EnemyAction
+;;0x8030: 0630 = MOVE PC, AB
+        LOAD? Q, uhp
+;;0x8031: 0901 = MOVE MA, uhp
+;;0x8032: 1005 = MOVE? Q, MD
+        J.Z YouDied
+;;0x8033: C382 = MOVE.Z A, >YouDied
+;;0x8034: C57C = MOVE.Z B, <YouDied
+;;0x8035: C630 = MOVE.Z PC, AB
+        LOAD? Q, mhp
+;;0x8036: 0903 = MOVE MA, mhp
+;;0x8037: 1005 = MOVE? Q, MD
+        J.Z YouWin
+;;0x8038: C382 = MOVE.Z A, >YouWin
+;;0x8039: C562 = MOVE.Z B, <YouWin
+;;0x803A: C630 = MOVE.Z PC, AB
+        J GameLoop
+;;0x803B: 0380 = MOVE A, >GameLoop
+;;0x803C: 0516 = MOVE B, <GameLoop
+;;0x803D: 0630 = MOVE PC, AB
+
+helloString:
+        .WORDS "Hello, and welcome to Fight!\n", 0
+;;0x803E: 0048 = 'H'
+;;0x803F: 0065 = 'e'
+;;0x8040: 006C = 'l'
+;;0x8041: 006C = 'l'
+;;0x8042: 006F = 'o'
+;;0x8043: 002C = ','
+;;0x8044: 0020 = ' '
+;;0x8045: 0061 = 'a'
+;;0x8046: 006E = 'n'
+;;0x8047: 0064 = 'd'
+;;0x8048: 0020 = ' '
+;;0x8049: 0077 = 'w'
+;;0x804A: 0065 = 'e'
+;;0x804B: 006C = 'l'
+;;0x804C: 0063 = 'c'
+;;0x804D: 006F = 'o'
+;;0x804E: 006D = 'm'
+;;0x804F: 0065 = 'e'
+;;0x8050: 0020 = ' '
+;;0x8051: 0074 = 't'
+;;0x8052: 006F = 'o'
+;;0x8053: 0020 = ' '
+;;0x8054: 0046 = 'F'
+;;0x8055: 0069 = 'i'
+;;0x8056: 0067 = 'g'
+;;0x8057: 0068 = 'h'
+;;0x8058: 0074 = 't'
+;;0x8059: 0021 = '!'
+;;0x805A: 000A = newline
+;;0x805B: 0000 = 0
+
+ShowStats:
+        WIDESTORE param1, statString1
+;;0x805C: 0981 = MOVE MA, param1
+;;0x805D: 0380 = MOVE A, >statString1
+;;0x805E: 05BB = MOVE B, <statString1
+;;0x805F: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8060: 0406 = MOVE B, S
+;;0x8061: 0C50 = MOVE S, BDEC
+;;0x8062: 0806 = MOVE MA, S
+;;0x8063: 0380 = MOVE A, >+9
+;;0x8064: 0569 = MOVE B, <+9
+;;0x8065: 0A30 = MOVE MD, AB
+;;0x8066: 0382 = MOVE A, >OutputString
+;;0x8067: 0597 = MOVE B, <OutputString
+;;0x8068: 0630 = MOVE PC, AB
+        LOAD X, uhp
+;;0x8069: 0901 = MOVE MA, uhp
+;;0x806A: 0E05 = MOVE X, MD
+        STORE param1, X
+;;0x806B: 0981 = MOVE MA, param1
+;;0x806C: 0A07 = MOVE MD, X
+        JL OutputSmallNumber
+;;0x806D: 0406 = MOVE B, S
+;;0x806E: 0C50 = MOVE S, BDEC
+;;0x806F: 0806 = MOVE MA, S
+;;0x8070: 0380 = MOVE A, >+9
+;;0x8071: 0576 = MOVE B, <+9
+;;0x8072: 0A30 = MOVE MD, AB
+;;0x8073: 0382 = MOVE A, >OutputSmallNumber
+;;0x8074: 05A9 = MOVE B, <OutputSmallNumber
+;;0x8075: 0630 = MOVE PC, AB
+        WIDESTORE param1, statString2
+;;0x8076: 0981 = MOVE MA, param1
+;;0x8077: 0380 = MOVE A, >statString2
+;;0x8078: 05C5 = MOVE B, <statString2
+;;0x8079: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x807A: 0406 = MOVE B, S
+;;0x807B: 0C50 = MOVE S, BDEC
+;;0x807C: 0806 = MOVE MA, S
+;;0x807D: 0380 = MOVE A, >+9
+;;0x807E: 0583 = MOVE B, <+9
+;;0x807F: 0A30 = MOVE MD, AB
+;;0x8080: 0382 = MOVE A, >OutputString
+;;0x8081: 0597 = MOVE B, <OutputString
+;;0x8082: 0630 = MOVE PC, AB
+        LOAD X, upot
+;;0x8083: 0902 = MOVE MA, upot
+;;0x8084: 0E05 = MOVE X, MD
+        STORE param1, X
+;;0x8085: 0981 = MOVE MA, param1
+;;0x8086: 0A07 = MOVE MD, X
+        JL OutputSmallNumber
+;;0x8087: 0406 = MOVE B, S
+;;0x8088: 0C50 = MOVE S, BDEC
+;;0x8089: 0806 = MOVE MA, S
+;;0x808A: 0380 = MOVE A, >+9
+;;0x808B: 0590 = MOVE B, <+9
+;;0x808C: 0A30 = MOVE MD, AB
+;;0x808D: 0382 = MOVE A, >OutputSmallNumber
+;;0x808E: 05A9 = MOVE B, <OutputSmallNumber
+;;0x808F: 0630 = MOVE PC, AB
+        WIDESTORE param1, statString3
+;;0x8090: 0981 = MOVE MA, param1
+;;0x8091: 0380 = MOVE A, >statString3
+;;0x8092: 05D5 = MOVE B, <statString3
+;;0x8093: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8094: 0406 = MOVE B, S
+;;0x8095: 0C50 = MOVE S, BDEC
+;;0x8096: 0806 = MOVE MA, S
+;;0x8097: 0380 = MOVE A, >+9
+;;0x8098: 059D = MOVE B, <+9
+;;0x8099: 0A30 = MOVE MD, AB
+;;0x809A: 0382 = MOVE A, >OutputString
+;;0x809B: 0597 = MOVE B, <OutputString
+;;0x809C: 0630 = MOVE PC, AB
+        LOAD X, mhp
+;;0x809D: 0903 = MOVE MA, mhp
+;;0x809E: 0E05 = MOVE X, MD
+        STORE param1, X
+;;0x809F: 0981 = MOVE MA, param1
+;;0x80A0: 0A07 = MOVE MD, X
+        JL OutputSmallNumber
+;;0x80A1: 0406 = MOVE B, S
+;;0x80A2: 0C50 = MOVE S, BDEC
+;;0x80A3: 0806 = MOVE MA, S
+;;0x80A4: 0380 = MOVE A, >+9
+;;0x80A5: 05AA = MOVE B, <+9
+;;0x80A6: 0A30 = MOVE MD, AB
+;;0x80A7: 0382 = MOVE A, >OutputSmallNumber
+;;0x80A8: 05A9 = MOVE B, <OutputSmallNumber
+;;0x80A9: 0630 = MOVE PC, AB
+        WIDESTORE param1, statString4
+;;0x80AA: 0981 = MOVE MA, param1
+;;0x80AB: 0380 = MOVE A, >statString4
+;;0x80AC: 05E3 = MOVE B, <statString4
+;;0x80AD: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x80AE: 0406 = MOVE B, S
+;;0x80AF: 0C50 = MOVE S, BDEC
+;;0x80B0: 0806 = MOVE MA, S
+;;0x80B1: 0380 = MOVE A, >+9
+;;0x80B2: 05B7 = MOVE B, <+9
+;;0x80B3: 0A30 = MOVE MD, AB
+;;0x80B4: 0382 = MOVE A, >OutputString
+;;0x80B5: 0597 = MOVE B, <OutputString
+;;0x80B6: 0630 = MOVE PC, AB
+        RET
+;;0x80B7: 0806 = MOVE MA, S
+;;0x80B8: 0406 = MOVE B, S
+;;0x80B9: 0C40 = MOVE S, BINC
+;;0x80BA: 0605 = MOVE PC, MD
+
+statString1:
+        .WORDS "Your HP: ", 0
+;;0x80BB: 0059 = 'Y'
+;;0x80BC: 006F = 'o'
+;;0x80BD: 0075 = 'u'
+;;0x80BE: 0072 = 'r'
+;;0x80BF: 0020 = ' '
+;;0x80C0: 0048 = 'H'
+;;0x80C1: 0050 = 'P'
+;;0x80C2: 003A = ':'
+;;0x80C3: 0020 = ' '
+;;0x80C4: 0000 = 0
+statString2:
+        .WORDS "0/50  Potions: ", 0
+;;0x80C5: 0030 = '0'
+;;0x80C6: 002F = '/'
+;;0x80C7: 0035 = '5'
+;;0x80C8: 0030 = '0'
+;;0x80C9: 0020 = ' '
+;;0x80CA: 0020 = ' '
+;;0x80CB: 0050 = 'P'
+;;0x80CC: 006F = 'o'
+;;0x80CD: 0074 = 't'
+;;0x80CE: 0069 = 'i'
+;;0x80CF: 006F = 'o'
+;;0x80D0: 006E = 'n'
+;;0x80D1: 0073 = 's'
+;;0x80D2: 003A = ':'
+;;0x80D3: 0020 = ' '
+;;0x80D4: 0000 = 0
+statString3:
+        .WORDS "/3\nEnemy HP: ", 0
+;;0x80D5: 002F = '/'
+;;0x80D6: 0033 = '3'
+;;0x80D7: 000A = newline
+;;0x80D8: 0045 = 'E'
+;;0x80D9: 006E = 'n'
+;;0x80DA: 0065 = 'e'
+;;0x80DB: 006D = 'm'
+;;0x80DC: 0079 = 'y'
+;;0x80DD: 0020 = ' '
+;;0x80DE: 0048 = 'H'
+;;0x80DF: 0050 = 'P'
+;;0x80E0: 003A = ':'
+;;0x80E1: 0020 = ' '
+;;0x80E2: 0000 = 0
+statString4:
+        .WORDS "0/100\n", 0
+;;0x80E3: 0030 = '0'
+;;0x80E4: 002F = '/'
+;;0x80E5: 0031 = '1'
+;;0x80E6: 0030 = '0'
+;;0x80E7: 0030 = '0'
+;;0x80E8: 000A = newline
+;;0x80E9: 0000 = 0
+
+PlayerAction:
+        WIDESTORE param1, playerActionPromptString
+;;0x80EA: 0981 = MOVE MA, param1
+;;0x80EB: 0381 = MOVE A, >playerActionPromptString
+;;0x80EC: 0513 = MOVE B, <playerActionPromptString
+;;0x80ED: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x80EE: 0406 = MOVE B, S
+;;0x80EF: 0C50 = MOVE S, BDEC
+;;0x80F0: 0806 = MOVE MA, S
+;;0x80F1: 0380 = MOVE A, >+9
+;;0x80F2: 05F7 = MOVE B, <+9
+;;0x80F3: 0A30 = MOVE MD, AB
+;;0x80F4: 0382 = MOVE A, >OutputString
+;;0x80F5: 0597 = MOVE B, <OutputString
+;;0x80F6: 0630 = MOVE PC, AB
+ReadPlayerAction:       
+        LOAD? A, tty
+;;0x80F7: 0900 = MOVE MA, tty
+;;0x80F8: 1205 = MOVE? A, MD
+        J.MI ReadPlayerAction
+;;0x80F9: 4380 = MOVE.MI A, >ReadPlayerAction
+;;0x80FA: 45F7 = MOVE.MI B, <ReadPlayerAction
+;;0x80FB: 4630 = MOVE.MI PC, AB
+        MOVE B, 0x61            ; letter a
+;;0x80FC: 0561 = MOVE B, 97
+        MOVE? Q, SUB
+;;0x80FD: 1008 = MOVE? Q, SUB
+        J.Z PlayerAttacks
+;;0x80FE: C381 = MOVE.Z A, >PlayerAttacks
+;;0x80FF: C542 = MOVE.Z B, <PlayerAttacks
+;;0x8100: C630 = MOVE.Z PC, AB
+        MOVE B, 0x41            ; letter A
+;;0x8101: 0541 = MOVE B, 65
+        MOVE? Q, SUB
+;;0x8102: 1008 = MOVE? Q, SUB
+        J.Z PlayerAttacks
+;;0x8103: C381 = MOVE.Z A, >PlayerAttacks
+;;0x8104: C542 = MOVE.Z B, <PlayerAttacks
+;;0x8105: C630 = MOVE.Z PC, AB
+        MOVE B, 0x70            ; letter p
+;;0x8106: 0570 = MOVE B, 112
+        MOVE? Q, SUB
+;;0x8107: 1008 = MOVE? Q, SUB
+        J.Z PlayerPotions
+;;0x8108: C381 = MOVE.Z A, >PlayerPotions
+;;0x8109: C56D = MOVE.Z B, <PlayerPotions
+;;0x810A: C630 = MOVE.Z PC, AB
+        MOVE B, 0x50            ; letter P
+;;0x810B: 0550 = MOVE B, 80
+        MOVE? Q, SUB
+;;0x810C: 1008 = MOVE? Q, SUB
+        J.Z PlayerPotions
+;;0x810D: C381 = MOVE.Z A, >PlayerPotions
+;;0x810E: C56D = MOVE.Z B, <PlayerPotions
+;;0x810F: C630 = MOVE.Z PC, AB
+        J ReadPlayerAction
+;;0x8110: 0380 = MOVE A, >ReadPlayerAction
+;;0x8111: 05F7 = MOVE B, <ReadPlayerAction
+;;0x8112: 0630 = MOVE PC, AB
+
+playerActionPromptString:
+        .WORDS "Press 'a' to attack or 'p' to drink a potion.\n", 0
+;;0x8113: 0050 = 'P'
+;;0x8114: 0072 = 'r'
+;;0x8115: 0065 = 'e'
+;;0x8116: 0073 = 's'
+;;0x8117: 0073 = 's'
+;;0x8118: 0020 = ' '
+;;0x8119: 0027 = '''
+;;0x811A: 0061 = 'a'
+;;0x811B: 0027 = '''
+;;0x811C: 0020 = ' '
+;;0x811D: 0074 = 't'
+;;0x811E: 006F = 'o'
+;;0x811F: 0020 = ' '
+;;0x8120: 0061 = 'a'
+;;0x8121: 0074 = 't'
+;;0x8122: 0074 = 't'
+;;0x8123: 0061 = 'a'
+;;0x8124: 0063 = 'c'
+;;0x8125: 006B = 'k'
+;;0x8126: 0020 = ' '
+;;0x8127: 006F = 'o'
+;;0x8128: 0072 = 'r'
+;;0x8129: 0020 = ' '
+;;0x812A: 0027 = '''
+;;0x812B: 0070 = 'p'
+;;0x812C: 0027 = '''
+;;0x812D: 0020 = ' '
+;;0x812E: 0074 = 't'
+;;0x812F: 006F = 'o'
+;;0x8130: 0020 = ' '
+;;0x8131: 0064 = 'd'
+;;0x8132: 0072 = 'r'
+;;0x8133: 0069 = 'i'
+;;0x8134: 006E = 'n'
+;;0x8135: 006B = 'k'
+;;0x8136: 0020 = ' '
+;;0x8137: 0061 = 'a'
+;;0x8138: 0020 = ' '
+;;0x8139: 0070 = 'p'
+;;0x813A: 006F = 'o'
+;;0x813B: 0074 = 't'
+;;0x813C: 0069 = 'i'
+;;0x813D: 006F = 'o'
+;;0x813E: 006E = 'n'
+;;0x813F: 002E = '.'
+;;0x8140: 000A = newline
+;;0x8141: 0000 = 0
+
+PlayerAttacks:
+        LOAD A, mhp
+;;0x8142: 0903 = MOVE MA, mhp
+;;0x8143: 0205 = MOVE A, MD
+        STORE mhp, ADEC
+;;0x8144: 0903 = MOVE MA, mhp
+;;0x8145: 0A48 = MOVE MD, ADEC
+        WIDESTORE param1, playerAttackString
+;;0x8146: 0981 = MOVE MA, param1
+;;0x8147: 0381 = MOVE A, >playerAttackString
+;;0x8148: 054D = MOVE B, <playerAttackString
+;;0x8149: 0A30 = MOVE MD, AB
+        J OutputString          ; tail return
+;;0x814A: 0382 = MOVE A, >OutputString
+;;0x814B: 0597 = MOVE B, <OutputString
+;;0x814C: 0630 = MOVE PC, AB
+playerAttackString:
+        .WORDS "You attack, dealing 10 damage.\n", 0
+;;0x814D: 0059 = 'Y'
+;;0x814E: 006F = 'o'
+;;0x814F: 0075 = 'u'
+;;0x8150: 0020 = ' '
+;;0x8151: 0061 = 'a'
+;;0x8152: 0074 = 't'
+;;0x8153: 0074 = 't'
+;;0x8154: 0061 = 'a'
+;;0x8155: 0063 = 'c'
+;;0x8156: 006B = 'k'
+;;0x8157: 002C = ','
+;;0x8158: 0020 = ' '
+;;0x8159: 0064 = 'd'
+;;0x815A: 0065 = 'e'
+;;0x815B: 0061 = 'a'
+;;0x815C: 006C = 'l'
+;;0x815D: 0069 = 'i'
+;;0x815E: 006E = 'n'
+;;0x815F: 0067 = 'g'
+;;0x8160: 0020 = ' '
+;;0x8161: 0031 = '1'
+;;0x8162: 0030 = '0'
+;;0x8163: 0020 = ' '
+;;0x8164: 0064 = 'd'
+;;0x8165: 0061 = 'a'
+;;0x8166: 006D = 'm'
+;;0x8167: 0061 = 'a'
+;;0x8168: 0067 = 'g'
+;;0x8169: 0065 = 'e'
+;;0x816A: 002E = '.'
+;;0x816B: 000A = newline
+;;0x816C: 0000 = 0
+
+PlayerPotions:
+        LOAD? A, upot
+;;0x816D: 0902 = MOVE MA, upot
+;;0x816E: 1205 = MOVE? A, MD
+        J.Z NoPotions
+;;0x816F: C381 = MOVE.Z A, >NoPotions
+;;0x8170: C5F8 = MOVE.Z B, <NoPotions
+;;0x8171: C630 = MOVE.Z PC, AB
+        STORE upot, ADEC
+;;0x8172: 0902 = MOVE MA, upot
+;;0x8173: 0A48 = MOVE MD, ADEC
+        LOAD A, uhp
+;;0x8174: 0901 = MOVE MA, uhp
+;;0x8175: 0205 = MOVE A, MD
+        MOVE B, 3
+;;0x8176: 0503 = MOVE B, 3
+        MOVE A, ADD
+;;0x8177: 0200 = MOVE A, Q
+        MOVE B, 6
+;;0x8178: 0506 = MOVE B, 6
+        MOVE? Q, SUB
+;;0x8179: 1008 = MOVE? Q, SUB
+        J.NMI WastedPotion
+;;0x817A: 6381 = MOVE.NMI A, >WastedPotion
+;;0x817B: 65AC = MOVE.NMI B, <WastedPotion
+;;0x817C: 6630 = MOVE.NMI PC, AB
+        STORE uhp, A
+;;0x817D: 0901 = MOVE MA, uhp
+;;0x817E: 0A01 = MOVE MD, A
+        WIDESTORE param1, drankPotionString
+;;0x817F: 0981 = MOVE MA, param1
+;;0x8180: 0381 = MOVE A, >drankPotionString
+;;0x8181: 0586 = MOVE B, <drankPotionString
+;;0x8182: 0A30 = MOVE MD, AB
+        J OutputString          ; tail return
+;;0x8183: 0382 = MOVE A, >OutputString
+;;0x8184: 0597 = MOVE B, <OutputString
+;;0x8185: 0630 = MOVE PC, AB
+drankPotionString:
+        .WORDS "You drank a potion, restoring 30 HP.\n", 0
+;;0x8186: 0059 = 'Y'
+;;0x8187: 006F = 'o'
+;;0x8188: 0075 = 'u'
+;;0x8189: 0020 = ' '
+;;0x818A: 0064 = 'd'
+;;0x818B: 0072 = 'r'
+;;0x818C: 0061 = 'a'
+;;0x818D: 006E = 'n'
+;;0x818E: 006B = 'k'
+;;0x818F: 0020 = ' '
+;;0x8190: 0061 = 'a'
+;;0x8191: 0020 = ' '
+;;0x8192: 0070 = 'p'
+;;0x8193: 006F = 'o'
+;;0x8194: 0074 = 't'
+;;0x8195: 0069 = 'i'
+;;0x8196: 006F = 'o'
+;;0x8197: 006E = 'n'
+;;0x8198: 002C = ','
+;;0x8199: 0020 = ' '
+;;0x819A: 0072 = 'r'
+;;0x819B: 0065 = 'e'
+;;0x819C: 0073 = 's'
+;;0x819D: 0074 = 't'
+;;0x819E: 006F = 'o'
+;;0x819F: 0072 = 'r'
+;;0x81A0: 0069 = 'i'
+;;0x81A1: 006E = 'n'
+;;0x81A2: 0067 = 'g'
+;;0x81A3: 0020 = ' '
+;;0x81A4: 0033 = '3'
+;;0x81A5: 0030 = '0'
+;;0x81A6: 0020 = ' '
+;;0x81A7: 0048 = 'H'
+;;0x81A8: 0050 = 'P'
+;;0x81A9: 002E = '.'
+;;0x81AA: 000A = newline
+;;0x81AB: 0000 = 0
+
+WastedPotion:
+        STORE uhp, 5
+;;0x81AC: 0901 = MOVE MA, uhp
+;;0x81AD: 0B05 = MOVE MD, 5
+        WIDESTORE param1, wastedPotionString
+;;0x81AE: 0981 = MOVE MA, param1
+;;0x81AF: 0381 = MOVE A, >wastedPotionString
+;;0x81B0: 05B5 = MOVE B, <wastedPotionString
+;;0x81B1: 0A30 = MOVE MD, AB
+        J OutputString          ; tail return
+;;0x81B2: 0382 = MOVE A, >OutputString
+;;0x81B3: 0597 = MOVE B, <OutputString
+;;0x81B4: 0630 = MOVE PC, AB
+wastedPotionString:
+        .WORDS "You drank a potion, but you were too healthy and some was wasted!\n", 0
+;;0x81B5: 0059 = 'Y'
+;;0x81B6: 006F = 'o'
+;;0x81B7: 0075 = 'u'
+;;0x81B8: 0020 = ' '
+;;0x81B9: 0064 = 'd'
+;;0x81BA: 0072 = 'r'
+;;0x81BB: 0061 = 'a'
+;;0x81BC: 006E = 'n'
+;;0x81BD: 006B = 'k'
+;;0x81BE: 0020 = ' '
+;;0x81BF: 0061 = 'a'
+;;0x81C0: 0020 = ' '
+;;0x81C1: 0070 = 'p'
+;;0x81C2: 006F = 'o'
+;;0x81C3: 0074 = 't'
+;;0x81C4: 0069 = 'i'
+;;0x81C5: 006F = 'o'
+;;0x81C6: 006E = 'n'
+;;0x81C7: 002C = ','
+;;0x81C8: 0020 = ' '
+;;0x81C9: 0062 = 'b'
+;;0x81CA: 0075 = 'u'
+;;0x81CB: 0074 = 't'
+;;0x81CC: 0020 = ' '
+;;0x81CD: 0079 = 'y'
+;;0x81CE: 006F = 'o'
+;;0x81CF: 0075 = 'u'
+;;0x81D0: 0020 = ' '
+;;0x81D1: 0077 = 'w'
+;;0x81D2: 0065 = 'e'
+;;0x81D3: 0072 = 'r'
+;;0x81D4: 0065 = 'e'
+;;0x81D5: 0020 = ' '
+;;0x81D6: 0074 = 't'
+;;0x81D7: 006F = 'o'
+;;0x81D8: 006F = 'o'
+;;0x81D9: 0020 = ' '
+;;0x81DA: 0068 = 'h'
+;;0x81DB: 0065 = 'e'
+;;0x81DC: 0061 = 'a'
+;;0x81DD: 006C = 'l'
+;;0x81DE: 0074 = 't'
+;;0x81DF: 0068 = 'h'
+;;0x81E0: 0079 = 'y'
+;;0x81E1: 0020 = ' '
+;;0x81E2: 0061 = 'a'
+;;0x81E3: 006E = 'n'
+;;0x81E4: 0064 = 'd'
+;;0x81E5: 0020 = ' '
+;;0x81E6: 0073 = 's'
+;;0x81E7: 006F = 'o'
+;;0x81E8: 006D = 'm'
+;;0x81E9: 0065 = 'e'
+;;0x81EA: 0020 = ' '
+;;0x81EB: 0077 = 'w'
+;;0x81EC: 0061 = 'a'
+;;0x81ED: 0073 = 's'
+;;0x81EE: 0020 = ' '
+;;0x81EF: 0077 = 'w'
+;;0x81F0: 0061 = 'a'
+;;0x81F1: 0073 = 's'
+;;0x81F2: 0074 = 't'
+;;0x81F3: 0065 = 'e'
+;;0x81F4: 0064 = 'd'
+;;0x81F5: 0021 = '!'
+;;0x81F6: 000A = newline
+;;0x81F7: 0000 = 0
+
+NoPotions:
+        LOAD A, mhp
+;;0x81F8: 0903 = MOVE MA, mhp
+;;0x81F9: 0205 = MOVE A, MD
+        STORE mhp, ADEC
+;;0x81FA: 0903 = MOVE MA, mhp
+;;0x81FB: 0A48 = MOVE MD, ADEC
+        WIDESTORE param1, playerAttackString
+;;0x81FC: 0981 = MOVE MA, param1
+;;0x81FD: 0381 = MOVE A, >playerAttackString
+;;0x81FE: 054D = MOVE B, <playerAttackString
+;;0x81FF: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8200: 0406 = MOVE B, S
+;;0x8201: 0C50 = MOVE S, BDEC
+;;0x8202: 0806 = MOVE MA, S
+;;0x8203: 0382 = MOVE A, >+9
+;;0x8204: 0509 = MOVE B, <+9
+;;0x8205: 0A30 = MOVE MD, AB
+;;0x8206: 0382 = MOVE A, >OutputString
+;;0x8207: 0597 = MOVE B, <OutputString
+;;0x8208: 0630 = MOVE PC, AB
+        J ReadPlayerAction
+;;0x8209: 0380 = MOVE A, >ReadPlayerAction
+;;0x820A: 05F7 = MOVE B, <ReadPlayerAction
+;;0x820B: 0630 = MOVE PC, AB
+noPotionString:
+        .WORDS "You have no more potions to drink.\n", 0
+;;0x820C: 0059 = 'Y'
+;;0x820D: 006F = 'o'
+;;0x820E: 0075 = 'u'
+;;0x820F: 0020 = ' '
+;;0x8210: 0068 = 'h'
+;;0x8211: 0061 = 'a'
+;;0x8212: 0076 = 'v'
+;;0x8213: 0065 = 'e'
+;;0x8214: 0020 = ' '
+;;0x8215: 006E = 'n'
+;;0x8216: 006F = 'o'
+;;0x8217: 0020 = ' '
+;;0x8218: 006D = 'm'
+;;0x8219: 006F = 'o'
+;;0x821A: 0072 = 'r'
+;;0x821B: 0065 = 'e'
+;;0x821C: 0020 = ' '
+;;0x821D: 0070 = 'p'
+;;0x821E: 006F = 'o'
+;;0x821F: 0074 = 't'
+;;0x8220: 0069 = 'i'
+;;0x8221: 006F = 'o'
+;;0x8222: 006E = 'n'
+;;0x8223: 0073 = 's'
+;;0x8224: 0020 = ' '
+;;0x8225: 0074 = 't'
+;;0x8226: 006F = 'o'
+;;0x8227: 0020 = ' '
+;;0x8228: 0064 = 'd'
+;;0x8229: 0072 = 'r'
+;;0x822A: 0069 = 'i'
+;;0x822B: 006E = 'n'
+;;0x822C: 006B = 'k'
+;;0x822D: 002E = '.'
+;;0x822E: 000A = newline
+;;0x822F: 0000 = 0
+        
+EnemyAction:
+        LOAD A, uhp
+;;0x8230: 0901 = MOVE MA, uhp
+;;0x8231: 0205 = MOVE A, MD
+        STORE uhp, ADEC
+;;0x8232: 0901 = MOVE MA, uhp
+;;0x8233: 0A48 = MOVE MD, ADEC
+        WIDESTORE param1, enemyAttackString
+;;0x8234: 0981 = MOVE MA, param1
+;;0x8235: 0382 = MOVE A, >enemyAttackString
+;;0x8236: 053B = MOVE B, <enemyAttackString
+;;0x8237: 0A30 = MOVE MD, AB
+        J OutputString          ; tail return
+;;0x8238: 0382 = MOVE A, >OutputString
+;;0x8239: 0597 = MOVE B, <OutputString
+;;0x823A: 0630 = MOVE PC, AB
+enemyAttackString:
+        .WORDS "The enemy attacks, dealing 10 damage.\n", 0
+;;0x823B: 0054 = 'T'
+;;0x823C: 0068 = 'h'
+;;0x823D: 0065 = 'e'
+;;0x823E: 0020 = ' '
+;;0x823F: 0065 = 'e'
+;;0x8240: 006E = 'n'
+;;0x8241: 0065 = 'e'
+;;0x8242: 006D = 'm'
+;;0x8243: 0079 = 'y'
+;;0x8244: 0020 = ' '
+;;0x8245: 0061 = 'a'
+;;0x8246: 0074 = 't'
+;;0x8247: 0074 = 't'
+;;0x8248: 0061 = 'a'
+;;0x8249: 0063 = 'c'
+;;0x824A: 006B = 'k'
+;;0x824B: 0073 = 's'
+;;0x824C: 002C = ','
+;;0x824D: 0020 = ' '
+;;0x824E: 0064 = 'd'
+;;0x824F: 0065 = 'e'
+;;0x8250: 0061 = 'a'
+;;0x8251: 006C = 'l'
+;;0x8252: 0069 = 'i'
+;;0x8253: 006E = 'n'
+;;0x8254: 0067 = 'g'
+;;0x8255: 0020 = ' '
+;;0x8256: 0031 = '1'
+;;0x8257: 0030 = '0'
+;;0x8258: 0020 = ' '
+;;0x8259: 0064 = 'd'
+;;0x825A: 0061 = 'a'
+;;0x825B: 006D = 'm'
+;;0x825C: 0061 = 'a'
+;;0x825D: 0067 = 'g'
+;;0x825E: 0065 = 'e'
+;;0x825F: 002E = '.'
+;;0x8260: 000A = newline
+;;0x8261: 0000 = 0
+
+YouWin:
+        WIDESTORE param1, youWinString
+;;0x8262: 0981 = MOVE MA, param1
+;;0x8263: 0382 = MOVE A, >youWinString
+;;0x8264: 0572 = MOVE B, <youWinString
+;;0x8265: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8266: 0406 = MOVE B, S
+;;0x8267: 0C50 = MOVE S, BDEC
+;;0x8268: 0806 = MOVE MA, S
+;;0x8269: 0382 = MOVE A, >+9
+;;0x826A: 056F = MOVE B, <+9
+;;0x826B: 0A30 = MOVE MD, AB
+;;0x826C: 0382 = MOVE A, >OutputString
+;;0x826D: 0597 = MOVE B, <OutputString
+;;0x826E: 0630 = MOVE PC, AB
+        J Exit
+;;0x826F: 0382 = MOVE A, >Exit
+;;0x8270: 05BF = MOVE B, <Exit
+;;0x8271: 0630 = MOVE PC, AB
+youWinString:
+        .WORDS "You win!\n", 0
+;;0x8272: 0059 = 'Y'
+;;0x8273: 006F = 'o'
+;;0x8274: 0075 = 'u'
+;;0x8275: 0020 = ' '
+;;0x8276: 0077 = 'w'
+;;0x8277: 0069 = 'i'
+;;0x8278: 006E = 'n'
+;;0x8279: 0021 = '!'
+;;0x827A: 000A = newline
+;;0x827B: 0000 = 0
+YouDied:
+        WIDESTORE param1, youDiedString
+;;0x827C: 0981 = MOVE MA, param1
+;;0x827D: 0382 = MOVE A, >youDiedString
+;;0x827E: 058C = MOVE B, <youDiedString
+;;0x827F: 0A30 = MOVE MD, AB
+        JL OutputString
+;;0x8280: 0406 = MOVE B, S
+;;0x8281: 0C50 = MOVE S, BDEC
+;;0x8282: 0806 = MOVE MA, S
+;;0x8283: 0382 = MOVE A, >+9
+;;0x8284: 0589 = MOVE B, <+9
+;;0x8285: 0A30 = MOVE MD, AB
+;;0x8286: 0382 = MOVE A, >OutputString
+;;0x8287: 0597 = MOVE B, <OutputString
+;;0x8288: 0630 = MOVE PC, AB
+        J Exit
+;;0x8289: 0382 = MOVE A, >Exit
+;;0x828A: 05BF = MOVE B, <Exit
+;;0x828B: 0630 = MOVE PC, AB
+youDiedString:
+        .WORDS "You died!\n", 0
+;;0x828C: 0059 = 'Y'
+;;0x828D: 006F = 'o'
+;;0x828E: 0075 = 'u'
+;;0x828F: 0020 = ' '
+;;0x8290: 0064 = 'd'
+;;0x8291: 0069 = 'i'
+;;0x8292: 0065 = 'e'
+;;0x8293: 0064 = 'd'
+;;0x8294: 0021 = '!'
+;;0x8295: 000A = newline
+;;0x8296: 0000 = 0
+
+OutputString:
+        LOAD X, param1
+;;0x8297: 0981 = MOVE MA, param1
+;;0x8298: 0E05 = MOVE X, MD
+-
+        MOVE B, X
+;;0x8299: 0407 = MOVE B, X
+        LOAD? X, B
+;;0x829A: 0802 = MOVE MA, B
+;;0x829B: 1E05 = MOVE? X, MD
+        J.Z +
+;;0x829C: C382 = MOVE.Z A, >+
+;;0x829D: C5A5 = MOVE.Z B, <+
+;;0x829E: C630 = MOVE.Z PC, AB
+        STORE tty, X
+;;0x829F: 0900 = MOVE MA, tty
+;;0x82A0: 0A07 = MOVE MD, X
+        MOVE X, BINC
+;;0x82A1: 0E40 = MOVE X, BINC
+        J -
+;;0x82A2: 0382 = MOVE A, >-
+;;0x82A3: 0599 = MOVE B, <-
+;;0x82A4: 0630 = MOVE PC, AB
++
+        RET
+;;0x82A5: 0806 = MOVE MA, S
+;;0x82A6: 0406 = MOVE B, S
+;;0x82A7: 0C40 = MOVE S, BINC
+;;0x82A8: 0605 = MOVE PC, MD
+
+OutputSmallNumber:
+        LOAD A, param1
+;;0x82A9: 0981 = MOVE MA, param1
+;;0x82AA: 0205 = MOVE A, MD
+        MOVE B, 10
+;;0x82AB: 050A = MOVE B, 10
+        MOVE? Q, SUB
+;;0x82AC: 1008 = MOVE? Q, SUB
+        J.NMI +
+;;0x82AD: 6382 = MOVE.NMI A, >+
+;;0x82AE: 65B7 = MOVE.NMI B, <+
+;;0x82AF: 6630 = MOVE.NMI PC, AB
+        ; small number, output it
+        MOVE B, 0x30
+;;0x82B0: 0530 = MOVE B, 48
+        STORE tty, ADD
+;;0x82B1: 0900 = MOVE MA, tty
+;;0x82B2: 0A00 = MOVE MD, Q
+        RET
+;;0x82B3: 0806 = MOVE MA, S
+;;0x82B4: 0406 = MOVE B, S
+;;0x82B5: 0C40 = MOVE S, BINC
+;;0x82B6: 0605 = MOVE PC, MD
++       ; big number, output 10 :)
+        STORE tty, 0x31
+;;0x82B7: 0900 = MOVE MA, tty
+;;0x82B8: 0B31 = MOVE MD, 49
+        STORE tty, 0x30
+;;0x82B9: 0900 = MOVE MA, tty
+;;0x82BA: 0B30 = MOVE MD, 48
+        RET
+;;0x82BB: 0806 = MOVE MA, S
+;;0x82BC: 0406 = MOVE B, S
+;;0x82BD: 0C40 = MOVE S, BINC
+;;0x82BE: 0605 = MOVE PC, MD
+
+Exit:
+        STORE tty, 0xFF
+;;0x82BF: 0900 = MOVE MA, tty
+;;0x82C0: 0BFF = MOVE MD, 255
+-
+        J -
+;;0x82C1: 0382 = MOVE A, >-
+;;0x82C2: 05C1 = MOVE B, <-
+;;0x82C3: 0630 = MOVE PC, AB
